@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Beer Funky Log 🍺</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Space Mono', monospace; 
+            background-color: #000000; /* Svart bas */
+            color: #ffffff; 
+            margin: 0; 
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { 
+            width: 100%; 
+            max-width: 450px; 
+            background: #111; 
+            padding: 25px; 
+            border-radius: 0px; /* Kantigt är mer funky */
+            border: 4px solid #2417c7; /* Din blå färg */
+            box-shadow: 8px 8px 0px #f802ae; /* Din rosa färg som "hard shadow" */
+        }
+
+        h1 { 
+            text-align: center; 
+            color: #f802ae; 
+            font-family: 'Bungee', cursive;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            text-shadow: 3px 3px 0px #2417c7;
+        }
+
+        label { 
+            display: block; 
+            margin-top: 15px; 
+            font-weight: bold; 
+            color: #2417c7;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        
+        input, textarea { 
+            width: 100%; 
+            background: #000; 
+            border: 2px solid #f802ae; 
+            color: #fff; 
+            padding: 12px; 
+            margin-top: 5px; 
+            border-radius: 0; 
+            font-size: 16px;
+            font-family: 'Space Mono', monospace;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2417c7;
+            box-shadow: 0 0 10px #2417c7;
+        }
+
+        button { 
+            width: 100%; 
+            background: #2417c7; 
+            color: #fff; 
+            border: none; 
+            padding: 18px; 
+            margin-top: 25px; 
+            font-family: 'Bungee', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 5px 5px 0px #f802ae;
+            transition: all 0.1s;
+        }
+
+        button:active { 
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #f802ae;
+        }
+
+        /* Ölkorten */
+        #beerList { width: 100%; max-width: 450px; margin-top: 40px; }
+
+        .beer-card { 
+            background: #111; 
+            margin-bottom: 25px; 
+            padding: 20px; 
+            border: 3px solid #f802ae;
+            position: relative;
+        }
+
+        .beer-card h3 { 
+            margin: 0; 
+            font-family: 'Bungee', cursive; 
+            color: #2417c7; 
+            font-size: 1.4rem;
+        }
+        
+        .rating { 
+            background: #f802ae; 
+            color: #000; 
+            display: inline-block; 
+            padding: 2px 10px; 
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .beer-card p { font-size: 0.9rem; color: #eee; }
+
+        .beer-card img { 
+            width: 100%; 
+            border: 2px solid #2417c7;
+            margin-top: 15px;
+        }
+
+        .delete-btn {
+            background: transparent;
+            color: #ff0000;
+            border: 1px dashed #ff0000;
+            padding: 5px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            margin-top: 15px;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>BEER LOG</h1>
+    
+    <label>Namn på bryggden</label>
+    <input type="text" id="beerName" placeholder="PUNK IPA...">
+    
+    <label>Hur många stjärnor?</label>
+    <input type="number" id="beerRating" placeholder="1-5" min="1" max="5">
+    
+    <label>Plåta ölen</label>
+    <input type="file" id="beerImg" accept="image/*" capture="environment">
+    
+    <label>Dina tankar</label>
+    <textarea id="beerDesc" rows="3" placeholder="Beskriv viben..."></textarea>
+    
+    <button onclick="saveBeer()">SPARA!</button>
+</div>
+
+<div id="beerList"></div>
+
+<script>
+    window.onload = displayBeers;
+
+    function saveBeer() {
+        const name = document.getElementById('beerName').value;
+        const rating = document.getElementById('beerRating').value;
+        const desc = document.getElementById('beerDesc').value;
+        const imgInput = document.getElementById('beerImg');
+
+        if (!name || !rating) return alert("Glöm inte namn & betyg!");
+
+        const reader = new FileReader();
+        const processSave = (imageData) => {
+            const beer = { id: Date.now(), name, rating, desc, image: imageData };
+            let beers = JSON.parse(localStorage.getItem('funkyBeers')) || [];
+            beers.push(beer);
+            localStorage.setItem('funkyBeers', JSON.stringify(beers));
+            displayBeers();
+            clearInputs();
+        };
+
+        if (imgInput.files[0]) {
+            reader.readAsDataURL(imgInput.files[0]);
+            reader.onload = () => processSave(reader.result);
+        } else {
+            processSave(null);
+        }
+    }
+
+    function displayBeers() {
+        const beerList = document.getElementById('beerList');
+        const beers = JSON.parse(localStorage.getItem('funkyBeers')) || [];
+        beerList.innerHTML = "";
+
+        beers.slice().reverse().forEach(beer => {
+            beerList.innerHTML += `
+                <div class="beer-card">
+                    <h3>${beer.name}</h3>
+                    <div class="rating">SCORE: ${beer.rating}/5</div>
+                    <p>${beer.desc}</p>
+                    ${beer.image ? `<img src="${beer.image}">` : ''}
+                    <button class="delete-btn" onclick="deleteBeer(${beer.id})">[ TA BORT ]</button>
+                </div>
+            `;
+        });
+    }
+
+    function deleteBeer(id) {
+        if(confirm("Radera denna?")) {
+            let beers = JSON.parse(localStorage.getItem('funkyBeers'));
+            beers = beers.filter(b => b.id !== id);
+            localStorage.setItem('funkyBeers', JSON.stringify(beers));
+            displayBeers();
+        }
+    }
+
+    function clearInputs() {
+        document.getElementById('beerName').value = '';
+        document.getElementById('beerRating').value = '';
+        document.getElementById('beerDesc').value = '';
+        document.getElementById('beerImg').value = '';
+    }
+</script>
+
+</body>
+</html>
