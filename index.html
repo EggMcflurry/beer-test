@@ -7,45 +7,103 @@
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Samma funky styling som innan */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Space Mono', monospace; background-color: #000; color: #fff; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 450px; background: #111; padding: 25px; border: 4px solid #2417c7; box-shadow: 8px 8px 0px #f802ae; margin-bottom: 20px; }
-        h1 { text-align: center; color: #f802ae; font-family: 'Bungee', cursive; text-shadow: 3px 3px 0px #2417c7; }
+        
+        .container { 
+            width: 100%; 
+            max-width: 450px; 
+            background: #111; 
+            padding: 25px; 
+            border: 4px solid #2417c7; 
+            box-shadow: 8px 8px 0px #f802ae; 
+            margin-bottom: 20px; 
+        }
+
+        h1 { text-align: center; color: #f802ae; font-family: 'Bungee', cursive; text-shadow: 3px 3px 0px #2417c7; margin-top: 0; }
+        
         label { display: block; margin-top: 15px; color: #2417c7; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; }
-        input, textarea { width: 100%; background: #000; border: 2px solid #f802ae; color: #fff; padding: 12px; margin-top: 5px; font-family: 'Space Mono', monospace; font-size: 16px; }
-        button { width: 100%; background: #2417c7; color: #fff; border: none; padding: 18px; margin-top: 25px; font-family: 'Bungee', cursive; font-size: 1.2rem; box-shadow: 5px 5px 0px #f802ae; cursor: pointer; }
+        
+        input, textarea { 
+            width: 100%; 
+            background: #000; 
+            border: 2px solid #f802ae; 
+            color: #fff; 
+            padding: 12px; 
+            margin-top: 5px; 
+            font-family: 'Space Mono', monospace; 
+            font-size: 16px; 
+            border-radius: 0;
+        }
+
+        button { 
+            width: 100%; 
+            background: #2417c7; 
+            color: #fff; 
+            border: none; 
+            padding: 18px; 
+            margin-top: 25px; 
+            font-family: 'Bungee', cursive; 
+            font-size: 1.2rem; 
+            box-shadow: 5px 5px 0px #f802ae; 
+            cursor: pointer; 
+            transition: 0.1s;
+        }
+
         button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #f802ae; }
+        button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+
         #beerList { width: 100%; max-width: 450px; }
-        .beer-card { background: #111; margin-bottom: 25px; padding: 20px; border: 3px solid #f802ae; }
-        .beer-card h3 { margin: 0; font-family: 'Bungee', cursive; color: #2417c7; }
-        .rating { background: #f802ae; color: #000; display: inline-block; padding: 2px 10px; margin: 10px 0; font-weight: bold; }
-        .beer-card img { width: 100%; border: 2px solid #2417c7; margin-top: 15px; }
+
+        .beer-card { 
+            background: #111; 
+            margin-bottom: 25px; 
+            padding: 20px; 
+            border: 3px solid #f802ae; 
+        }
+
+        .beer-card h3 { margin: 0; font-family: 'Bungee', cursive; color: #2417c7; text-transform: uppercase; }
+        
+        .rating { 
+            background: #f802ae; 
+            color: #000; 
+            display: inline-block; 
+            padding: 2px 10px; 
+            margin: 10px 0; 
+            font-weight: bold; 
+        }
+
+        .beer-card p { line-height: 1.5; color: #ddd; }
+        .beer-card img { width: 100%; border: 2px solid #2417c7; margin-top: 15px; display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>CLOUD BEER</h1>
-    <label>Namn</label>
-    <input type="text" id="beerName">
+    <label>Namn på bärs</label>
+    <input type="text" id="beerName" placeholder="T.ex. Mariestad">
+    
     <label>Betyg (1-5)</label>
-    <input type="number" id="beerRating" min="1" max="5">
-    <label>Bild (URL eller Base64)</label>
+    <input type="number" id="beerRating" min="1" max="5" placeholder="5">
+    
+    <label>Bild</label>
     <input type="file" id="beerImg" accept="image/*" capture="environment">
+    
     <label>Beskrivning</label>
-    <textarea id="beerDesc" rows="2"></textarea>
+    <textarea id="beerDesc" rows="2" placeholder="Hur smakar den?"></textarea>
+    
     <button id="saveBtn">Dela med gänget!</button>
 </div>
 
 <div id="beerList">Laddar gemensamma öl...</div>
 
 <script>
-   // INITIALISERA SUPABASE
-const _supabase = supabase.createClient(
-    'https://tsbelnbvhfuctkdobpqo.supabase.co', 
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzYmVsbmJ2aGZ1Y3RrZG9icHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODI5OTQsImV4cCI6MjA4NTk1ODk5NH0.3CTt-1tSu1YwaRQh9Jir5IEDsMVaKzqWy56ZVuWmBAM'
-);
+    // INITIALISERA SUPABASE
+    const _supabase = supabase.createClient(
+        'https://tsbelnbvhfuctkdobpqo.supabase.co', 
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzYmVsbmJ2aGZ1Y3RrZG9icHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODI5OTQsImV4cCI6MjA4NTk1ODk5NH0.3CTt-1tSu1YwaRQh9Jir5IEDsMVaKzqWy56ZVuWmBAM'
+    );
 
     // HÄMTA DATA
     async function fetchBeers() {
@@ -54,8 +112,12 @@ const _supabase = supabase.createClient(
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) console.log('Error:', error);
-        else displayBeers(data);
+        if (error) {
+            console.error('Error:', error);
+            document.getElementById('beerList').innerText = "Kunde inte hämta data...";
+        } else {
+            displayBeers(data);
+        }
     }
 
     // VISA DATA
@@ -67,39 +129,72 @@ const _supabase = supabase.createClient(
                 <div class="beer-card">
                     <h3>${beer.name}</h3>
                     <div class="rating">SCORE: ${beer.rating}/5</div>
-                    <p>${beer.description}</p>
+                    <p>${beer.description || ''}</p>
                     ${beer.image_url ? `<img src="${beer.image_url}">` : ''}
                 </div>
             `;
         });
     }
 
+    // FUNKTION FÖR ATT SKALA OM BILD (Viktigt för mobil!)
+    function resizeImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    // Exporterar som lite lättare JPEG
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            };
+        });
+    }
+
     // SPARA DATA
     document.getElementById('saveBtn').onclick = async () => {
+        const saveBtn = document.getElementById('saveBtn');
         const name = document.getElementById('beerName').value;
         const rating = document.getElementById('beerRating').value;
         const description = document.getElementById('beerDesc').value;
         const file = document.getElementById('beerImg').files[0];
 
+        if (!name || !rating) return alert("Fyll i namn och betyg!");
+
+        // Inaktivera knapp under uppladdning
+        saveBtn.disabled = true;
+        saveBtn.innerText = "FIXAR BILDEN...";
+
         let image_url = null;
 
-        if (file) {
-            // Här gör vi det enkelt: konverterar till Base64 för databasen
-            // (I ett större projekt bör man ladda upp till Supabase Storage istället)
-            image_url = await new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.readAsDataURL(file);
-            });
-        }
+        try {
+            if (file) {
+                image_url = await resizeImage(file);
+            }
 
-        const { error } = await _supabase
-            .from('beers')
-            .insert([{ name, rating, description, image_url }]);
+            saveBtn.innerText = "SKICKAR TILL MOLNET...";
 
-        if (error) alert("Kunde inte spara!");
-        else {
-            location.reload(); // Enkelt sätt att uppdatera listan
+            const { error } = await _supabase
+                .from('beers')
+                .insert([{ name, rating, description, image_url }]);
+
+            if (error) throw error;
+            
+            location.reload();
+        } catch (err) {
+            console.error(err);
+            alert("Kunde inte spara! Bilden kan vara för stor eller så saknas nät.");
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Dela med gänget!";
         }
     };
 
