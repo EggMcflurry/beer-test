@@ -41,8 +41,11 @@
 <div id="beerList">Laddar gemensamma öl...</div>
 
 <script>
-    // INITIALISERA SUPABASE
-    const _supabase = supabase.createClient('DIN_SUPABASE_URL', 'DIN_SUPABASE_ANON_KEY');
+   // INITIALISERA SUPABASE
+const _supabase = supabase.createClient(
+    'https://tsbelnbvhfuctkdobpqo.supabase.co', 
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzYmVsbmJ2aGZ1Y3RrZG9icHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODI5OTQsImV4cCI6MjA4NTk1ODk5NH0.3CTt-1tSu1YwaRQh9Jir5IEDsMVaKzqWy56ZVuWmBAM'
+);
 
     // HÄMTA DATA
     async function fetchBeers() {
